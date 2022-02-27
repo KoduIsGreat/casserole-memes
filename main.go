@@ -1,42 +1,49 @@
 package main
 
 import (
+	"embed"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"log"
 	"net/http"
 )
 
-type hello struct {
+//go:embed assets
+var assets embed.FS
+
+type casserole struct {
 	app.Compo
-
-	name string
+	baking bool
+	name   string
 }
+type s map[string]string
 
-func (h *hello) Render() app.UI {
+func (c *casserole) Render() app.UI {
 	return app.Div().Body(
 		app.H1().Body(
-			app.Text("Hello, "),
-			app.If(h.name != "",
-				app.Text(h.name),
-			).Else(
-				app.Text("World!"),
-			),
+			app.Img().Styles(s{
+				"width":  "100%",
+				"height": "auto",
+			}).
+				Src("/assets/banner.png"),
 		),
-		app.P().Body(
-			app.Input().
-				Type("text").
-				Value(h.name).
-				Placeholder("What is your name?").
-				AutoFocus(true).
-				OnChange(h.ValueTo(&h.name)),
-		),
-	)
+		app.Div().Body(
+			app.Button().Type("button").Text("Bake").OnClick(func(ctx app.Context, e app.Event) {
+				c.baking = !c.baking
+			}),
+			app.If(c.baking,
+				app.Img().Styles(s{
+					"display":      "block",
+					"margin-left":  "auto",
+					"margin-right": "auto",
+					"width":        "40%",
+				}).Src("/assets/oven.gif"),
+			)))
 }
 
 func main() {
 	// Components routing:
-	app.Route("/", &hello{})
-	app.Route("/hello", &hello{})
+	app.Route("/", &casserole{})
+	app.Route("/casserole", &casserole{})
 	app.RunWhenOnBrowser()
 
 	// HTTP routing:
@@ -44,6 +51,7 @@ func main() {
 		Name:        "Hello",
 		Description: "An Hello World! example",
 	})
+	http.Handle("/assets/", http.FileServer(http.FS(assets)))
 
 	if err := http.ListenAndServe(":8001", nil); err != nil {
 		log.Fatal(err)

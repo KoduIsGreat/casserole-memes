@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = ""
 
 [build]
-  bin = "./tmp/main"
+  bin = "./main"
   cmd = "GOARCH=wasm GOOS=js go build -o ./web/app.wasm && go build -o ./main ."
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
